@@ -55,19 +55,10 @@ def fetchsamples():
   url = "https://stream.twitter.com/1/statuses/sample.json"
   parameters = []
   response = twitterreq(url, "GET", parameters)
-  #print json.load(response).keys()
-  tweet_text = []
   for line in response:
-    try:
-      tweet = json.loads(line)
-      if tweet.has_key("text"):
-        continue
-      text = tweet["text"]
-      tweet_text.append(text)
-    except ValueError:
-      pass
-    
-  print tweet_text
+    unicode_string = line.encode('utf-8')
+    print unicode_string.strip()
+ # print tweet_text
     
 def afin2dic():
   afinnfile = open("AFINN-111.txt")
@@ -79,28 +70,102 @@ def afin2dic():
 
 def lines(fp):
     print str(len(fp.readlines()))
- 
+
+# http://pastebin.com/bqj3bZhG
+
+def fetchtweets():
+  sent_file = open(sys.argv[1])
+  filename = sys.argv[2]
+  tweets_text = []
+  
+  f = file(filename, "r")
+  
+  lines = f.readlines().split()
+  for item in lines:
+    try:
+      tweet = json.loads(item)
+      text = tweet["text"]
+      if text.find("rt ") > -1:
+        continue
+      if sent_file.key() in text:
+        tweets_text.append( text )
+      else:
+        print
+    except ValueError:
+      pass
+
+def affin():
+  afinnfile = open("./AFINN-111.txt")
+  scores = {} # initialize an empty dictionary
+  for line in afinnfile:
+    term, score  = line.split("\t")  # The file is tab-delimited. "\t" means "tab character"
+    scores[term] = int(score)  # Convert the score to an integer.
+  return scores
 
 def main():
-  sent_file = open(sys.argv[1])
-  tweet_file = open(sys.argv[2])
+  #sent_file = open(sys.argv[1])
+  #tweet_file = open(sys.argv[2])
+  f = open(sys.argv[1])
+  # type(f.readlines()) is a list, len(f.readlines())=1!!
+  #print json.load(f)
+  # type(f.readlines()[0]) is a str
+  # type(json.loads(f.readlines()[0])) gets dict
+  #Expecting property name: line 1 column 1 (char 1)--fixed by change
+  # file to output-probl.log
+  # json.loads(f.readlines()[0]).keys() get all fields
+  #print json.loads(f.readlines()[0])['text']
+ # for line in f:
+    #print line
+
+  afinnfile = open("./AFINN-111.txt")
+  scores = {} # initialize an empty dictionary
+  for line in afinnfile:
+    term, score  = line.split("\t")  # The file is tab-delimited. "\t" means "tab character"
+    scores[term] = int(score)  # Convert the score to an integer.
+
 
   tweet_text = []
+  tweet_score = 0
   
-  for line in tweet_file:
+  lines = f.readlines()
+  #print type(json.loads(lines[0]))
+  for item in lines:
     try:
-      tweet = json.loads(line)
-      if tweet.has_key("text"):
-        continue
-      text = tweet["text"]
+      #print type(json.loads(item))-->dict
+      #unicode_string = item.encode('utf-8')
+      tweet = json.loads(item)
+      '''
+      print tweet['text']
+      #.encode('utf-8')
+      text = tweet['text']
       tweet_text.append(text)
-      
+      '''
+      if tweet.has_key('text'):
+       # continue
+        #print tweet['text']
+        txt = tweet['text']
+        tweet_text.append(txt)
+      else:
+        print
+
     except ValueError:
       pass
     
-  print 
+  #print tweet_text
+  for item in tweet_text:
+        if item in scores:
+            tweet_score += scores[item]
+  print float(score)
+    
+
+  f.close()
+    
+
+  
+  
   
 if __name__ == '__main__':
   fetchsamples()
+  #fetchtweets
   #afin2dic()
   #main()
